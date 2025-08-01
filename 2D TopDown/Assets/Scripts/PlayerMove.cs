@@ -6,12 +6,15 @@ public class PlayerMove : MonoBehaviour
 {
     float moveX;
     float moveY;
-    public static string[] moves;
+    public static string[] moves = new string[4];
     bool gettingMoves = false;
     [SerializeField]
     public int noOfLoops;
-    public TMP_Text moveText;
+    // public TMP_Text moveText;
     public TMP_Text loopText;
+    public TMP_Text coinScoreTxt;
+    int coinScore = 0;
+
     [SerializeField]
     public float moveSpeed;
     Rigidbody2D rb;
@@ -20,6 +23,10 @@ public class PlayerMove : MonoBehaviour
     public float TimeBwLoop;
     public LayerMask obstacleLayer;
     public bool inPortal = false;
+    public bool isTeleporting = false;
+    public float teleportCooldown = 0.5f;
+    public Sprite[] moveSprites = new Sprite[4];
+    public GameObject[] moveKeys = new GameObject[4];
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -27,8 +34,8 @@ public class PlayerMove : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
 
         loopText.text = noOfLoops.ToString();
-        moveText.text = "";
-        moves = new string[4];
+        // moveText.text = "";
+        coinScoreTxt.text = coinScore.ToString();
 
         if (!gettingMoves) // Prevent starting multiple collection processes
         {
@@ -58,26 +65,30 @@ public class PlayerMove : MonoBehaviour
             {
                 moves[pressedKeyCount] = "W";
                 keyPressed = true;
+                moveKeys[pressedKeyCount].GetComponent<SpriteRenderer>().sprite = moveSprites[0];
             }
             else if (Input.GetKeyDown(KeyCode.S)) // Use else if for mutually exclusive keys
             {
                 moves[pressedKeyCount] = "S";
                 keyPressed = true;
+                moveKeys[pressedKeyCount].GetComponent<SpriteRenderer>().sprite = moveSprites[1];
             }
             else if (Input.GetKeyDown(KeyCode.A))
             {
                 moves[pressedKeyCount] = "A";
                 keyPressed = true;
+                moveKeys[pressedKeyCount].GetComponent<SpriteRenderer>().sprite = moveSprites[2];
             }
             else if (Input.GetKeyDown(KeyCode.D))
             {
                 moves[pressedKeyCount] = "D";
                 keyPressed = true;
+                moveKeys[pressedKeyCount].GetComponent<SpriteRenderer>().sprite = moveSprites[3];
             }
 
             if (keyPressed)
-            {
-                moveText.text = moveText.text + moves[pressedKeyCount];
+            {   
+                // moveText.text = moveText.text + moves[pressedKeyCount];
                 pressedKeyCount++;
             }
 
@@ -121,6 +132,7 @@ public class PlayerMove : MonoBehaviour
                     progress += Time.deltaTime * moveSpeed;
                     yield return null;
                 }
+
                 currentMove++;
                 yield return null;
             }
@@ -130,11 +142,20 @@ public class PlayerMove : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D other) {
+    private void OnTriggerEnter2D(Collider2D other)
+    {
         if (other.gameObject.tag == "Coin")
         {
+            coinScore++;
             other.gameObject.GetComponent<Animator>().SetTrigger("Collected");
             Destroy(other.gameObject, 2f);
+            coinScoreTxt.text = coinScore.ToString();
+        }
+        if (other.gameObject.tag == "Win")
+        {
+            Time.timeScale = 0;
+            Debug.Log("You won the fricking game");
         }
     }
+    
 }
