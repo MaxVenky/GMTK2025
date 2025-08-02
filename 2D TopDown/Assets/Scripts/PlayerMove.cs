@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 
@@ -7,6 +8,7 @@ public class PlayerMove : MonoBehaviour
     float moveX;
     float moveY;
     public static string[] moves = new string[4];
+    int pressedKeyCount = 0;
     bool gettingMoves = false;
     [SerializeField]
     public int noOfLoops;
@@ -22,11 +24,13 @@ public class PlayerMove : MonoBehaviour
     public float rayDistance;
     public float TimeBwLoop;
     public LayerMask obstacleLayer;
-    public bool inPortal = false;
-    public bool isTeleporting = false;
-    public float teleportCooldown = 0.5f;
     public Sprite[] moveSprites = new Sprite[4];
     public GameObject[] moveKeys = new GameObject[4];
+    public GameObject Arrow;
+    public GameObject StartButton;
+    public Image playButton;
+    Color colorA;
+    Color colorB;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -42,23 +46,49 @@ public class PlayerMove : MonoBehaviour
             gettingMoves = true;
             StartCoroutine(GetMovesCoroutine());
         }
+
+        StartButton.GetComponent<Button>().enabled = false;
+
+        colorA = StartButton.GetComponent<Image>().color;
+        colorA.a = 0.7f;
+        StartButton.GetComponent<Image>().color = colorA;
+
+        colorB = playButton.color;
+        colorB.a = 0.7f;
+        playButton.color = colorB;
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        if(Input.GetKeyDown(KeyCode.E))
         {
             StartCoroutine(PlayMoves());
         }
+        if (pressedKeyCount == 4)
+        {
+            Debug.Log("Button updated!");
+            StartButton.GetComponent<Button>().enabled = true;
+
+            colorA.a = 1f;
+            StartButton.GetComponent<Image>().color = colorA;
+
+            colorB.a = 1f;
+            playButton.color = colorB;
+        }
+    }
+
+    public void StartMoves()
+    {
+        Debug.Log("Clicking Button");
+        StartCoroutine(PlayMoves());
     }
 
 
     IEnumerator GetMovesCoroutine()
     {
-        int pressedKeyCount = 0;
-
-        while (pressedKeyCount < moves.Length)
+        while (pressedKeyCount < moveKeys.Length)
         {
+            Arrow.transform.position = moveKeys[pressedKeyCount].transform.position + new Vector3(0f, 2.2f, 0f);
             bool keyPressed = false;
 
             if (Input.GetKeyDown(KeyCode.W))
@@ -67,7 +97,7 @@ public class PlayerMove : MonoBehaviour
                 keyPressed = true;
                 moveKeys[pressedKeyCount].GetComponent<SpriteRenderer>().sprite = moveSprites[0];
             }
-            else if (Input.GetKeyDown(KeyCode.S)) // Use else if for mutually exclusive keys
+            else if (Input.GetKeyDown(KeyCode.S))
             {
                 moves[pressedKeyCount] = "S";
                 keyPressed = true;
@@ -87,7 +117,7 @@ public class PlayerMove : MonoBehaviour
             }
 
             if (keyPressed)
-            {   
+            {
                 // moveText.text = moveText.text + moves[pressedKeyCount];
                 pressedKeyCount++;
             }
@@ -96,6 +126,8 @@ public class PlayerMove : MonoBehaviour
         }
 
         gettingMoves = false;
+        
+        Debug.Log(pressedKeyCount);
     }
 
     IEnumerator PlayMoves()
@@ -106,8 +138,9 @@ public class PlayerMove : MonoBehaviour
             int currentMove = 0;
             while (currentMove < 4)
             {
-                moveX = 0; moveY = 0;
+                Arrow.transform.position = moveKeys[currentMove].transform.position + new Vector3(0f, 2.2f, 0f);
 
+                moveX = 0; moveY = 0;
                 if (moves[currentMove] == "W") moveY = 1;
                 if (moves[currentMove] == "S") moveY = -1;
                 if (moves[currentMove] == "A") moveX = -1;
@@ -120,7 +153,6 @@ public class PlayerMove : MonoBehaviour
 
                 if (hit.collider != null)
                 {
-                    Debug.Log(hit.collider.name);
                     yield return new WaitForSeconds(0.5f);
                     currentMove++;
                     continue;
@@ -140,7 +172,8 @@ public class PlayerMove : MonoBehaviour
             i++;
             yield return new WaitForSeconds(TimeBwLoop);
         }
-    }
+        Arrow.SetActive(false);
+    }    
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -153,7 +186,6 @@ public class PlayerMove : MonoBehaviour
         }
         if (other.gameObject.tag == "Win")
         {
-            Time.timeScale = 0;
             Debug.Log("You won the fricking game");
         }
     }
