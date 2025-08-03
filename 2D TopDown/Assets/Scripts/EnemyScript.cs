@@ -13,10 +13,12 @@ public class EnemyScript : MonoBehaviour
     LayerMask obstacleLayer;
     float TimeBwLoop;
     public PlayerMove playerScript;
-
+    Animator animator;
+    public AudioSource losingSound;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         TimeBwLoop = playerScript.TimeBwLoop;
         noOfLoops = playerScript.noOfLoops;
@@ -27,18 +29,22 @@ public class EnemyScript : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            StartCoroutine(PlayMoves());
-        }
+        
     }
 
-    private void OnCollisionEnter2D(Collision2D other) {
+    void StartTheMoves()
+    {
+        StartCoroutine(PlayMoves());
+    }
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
         if (other.collider.gameObject.name == "Player")
         {
             Time.timeScale = 0;
+            losingSound.Play();
             Debug.Log("Game Over");
-        }    
+        }
     }
 
 
@@ -64,7 +70,7 @@ public class EnemyScript : MonoBehaviour
                 if (hit.collider != null)
                 {
                     Debug.Log(hit.collider.name);
-                    yield return new WaitForSeconds(0.5f);
+                    yield return new WaitForSeconds(0.35f);
                     currentMove++;
                     continue;
                 }
@@ -75,10 +81,12 @@ public class EnemyScript : MonoBehaviour
                     progress += Time.deltaTime * moveSpeed;
                     yield return null;
                 }
+                animator.SetBool("Walking", true);
                 currentMove++;
                 yield return null;
             }
             i++;
+            animator.SetBool("Walking", false);
             yield return new WaitForSeconds(TimeBwLoop);
         }    
     }

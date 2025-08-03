@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Coin
   - Win
+  - ghostedPath
+  - ChangingBlock
   layers:
   - Default
   - TransparentFX
